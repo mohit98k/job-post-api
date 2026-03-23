@@ -11,3 +11,73 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+//data models 
+enum Role{
+  USER
+  COMPANY
+}
+model User{
+  id Int @id @default(autoincrement())
+  fullname String
+  userName String @unique
+  email String
+  password String 
+  role Role @default(USER)//this is my custom enum data type 
+  company Company?
+  applications Application[]//linking application to user 
+  createdAt DateTime @default(now())
+}
+model Company{
+  id Int @id @default(autoincrement())//fk of the job table 
+  userId Int @unique //actual foreign key col 
+  user User  @relation(fields: [userId] , references: [id])//now can access user.fullname via this 
+  companyName String 
+  websiteLink String 
+  about String 
+  location String 
+  jobs Job[]//linking the job table 
+}
+
+
+enum Location  {
+  REMOTE
+  ONSITE
+  HYBRID
+}
+model Job{
+  id Int @id @default(autoincrement())//pk of the tabel 
+  companyId Int  //fk col
+  company Company @relation(fields: [companyId], references: [id])//linking the company table so u can access company
+  jobRole String 
+  description String 
+  location Location @default(ONSITE)
+  salary Int?
+  skills String[]
+  experience Int
+  applications Application[]//linking job with application
+  tags Tag[]
+  createdAt DateTime @default(now())
+}
+
+enum Status{
+  APPLIED
+  ACCEPTED
+  REJECTED 
+}
+//when was applied ? who applied ? to what job was applied for ?
+model Application{
+  id Int @id @default(autoincrement())
+  userId Int //fk col
+  user User @relation(fields: [userId],references: [id])
+  jobId Int //fk col
+  job Job @relation(fields: [jobId],references: [id])
+  status Status @default(APPLIED)
+  createdAt DateTime @default(now())
+}
+
+model Tag{
+  id Int @id @default(autoincrement())
+  jobs Job[]
+  tagValue String @unique
+}
