@@ -9,7 +9,7 @@ const verifyJWT=async (req,res,next)=>{
              return res.status(401).json({message:"null token cant do jwt authetication "});
         }
 
-        const decodedToken=jwt.verify(accessToken,process.env.ACCESS_TOKEN_SECRET);
+        const decodedToken=jwt.verify(token,process.env.ACCESS_TOKEN_SECRET);
 
         const user=await prisma.user.findUnique({
             where : {id:decodedToken.id},
