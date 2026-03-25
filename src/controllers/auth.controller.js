@@ -6,8 +6,8 @@ import { generateRefreshToken } from '../utils/token.js'
 
 const register=async (req,res)=>{
     try{
-        const {fullName,userName,email,password,role}=req.body;
-        if(!fullName || !userName || !email || !password || !role ){
+        const {fullname,userName,email,password,role}=req.body;
+        if(!fullname || !userName || !email || !password || !role ){
             console.log("empty field");
            return res.status(400).json({ success: false, message: 'all fields are required' })
         }
@@ -23,7 +23,7 @@ const register=async (req,res)=>{
         //register as a normal user 
         const user=await prisma.user.create({
             data:{
-                fullName:fullName,
+                fullname:fullname,
                 userName:userName,
                 email:email,
                 password:hashedPass,
