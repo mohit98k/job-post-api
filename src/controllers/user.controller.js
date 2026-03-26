@@ -1,21 +1,21 @@
-import verifyJWT from "../middlewares/auth.middleware.js";
-import prisma from "../prisma.js";
-const getUser=async(req,res)=>{
-    try{
-        const userwithoutPass =req.user;
-        // console.log(req.user);//exprerimental remove later 
-        return res.status(200).json({
-            success:true,
-            message:"found the user ",
-            user:userwithoutPass
-        })
-    }catch(err){
-        console.log("failed to obtain user ")
-        return res.status(404).json({
-            success:false,
-            message:"failed to obtain user"
-        })
+import asyncHandler from "../utils/asyncHandler.js"
+import AppError from "../utils/AppError.js";
+
+const getUser=asyncHandler(async(req,res)=>{
+    const user=req.user;
+    if(!user){
+        throw new AppError("user not found",404);
     }
-}
+     return res.status(200).json({
+            success:true,
+            message:"found user",
+            user:user
+        });
+})
+
 
 export default getUser;
+
+// throw AppError → declare problem
+// async handler -> catch the errror 
+// error middleware → handle problem
