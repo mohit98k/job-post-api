@@ -4,6 +4,7 @@ import {generateAccessToken} from '../utils/token.js'
 import { generateRefreshToken } from '../utils/token.js'
 import asyncHandler from '../utils/asyncHandler.js'
 import AppError from '../utils/AppError.js'
+import crypto from 'crypto';
 
 const register=asyncHandler(async(req,res)=>{
     const {fullname,userName,email,password,role}=req.body;
@@ -69,6 +70,14 @@ const login= asyncHandler(async(req,res)=>{
         const payload={id:user.id,role:user.role};
         const token=generateAccessToken(payload);
         const refToken=generateRefreshToken(payload);
+        const hashedRT=crypto.createHash("sha256").update(refToken).digest("hex");
+
+        //save the hashed ref token in db
+        
+        await prisma.user.update({
+            where : {id:user.id},
+            data : {refreshToken:hashedRT}
+        })
 
         const { password:userPass, ...userWithoutPassword } = user;
         res.cookie('accessToken',token,{
@@ -87,7 +96,36 @@ const login= asyncHandler(async(req,res)=>{
             message:"logged in ",
             user:userWithoutPassword,
         })  
+});
+
+
+//clear tokens with same options and send response 
+const logout=asyncHandler(async(req,res)=>{
+
+        const user =req.user;
+        //from the db remove the ref token so no one can use a stolen token 
+        //after the use logs out
+        await prisma.user.update({
+            where:{id:user.id},
+            data:{refreshToken:null}
+        });
+        
+        res.clearCookie("accessToken",{
+            httpOnly:true,
+            secure: process.env.NODE_ENV === 'production'
+        });
+
+        res.clearCookie("refreshToken",{
+            httpOnly:true,
+            secure: process.env.NODE_ENV === 'production'
+        });
+        return res.status(200).json({
+            success:true,
+            message:"logged out",
+            user: null
 })
 
-export {login , register};
+})
+
+export {login , register , logout};
 

@@ -25,6 +25,7 @@ model User{
   password String 
   role Role @default(USER)//this is my custom enum data type 
   company Company?
+  refreshToken String?
   applications Application[]//linking application to user 
   createdAt DateTime @default(now())
 }
