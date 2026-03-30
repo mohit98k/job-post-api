@@ -5,6 +5,7 @@ import { generateRefreshToken } from '../utils/token.js'
 import asyncHandler from '../utils/asyncHandler.js'
 import AppError from '../utils/AppError.js'
 import crypto from 'crypto';
+import jwt  from "jsonwebtoken";
 
 const register=asyncHandler(async(req,res)=>{
     const {fullname,userName,email,password,role}=req.body;
@@ -66,7 +67,7 @@ const login= asyncHandler(async(req,res)=>{
             console.log("password incorrect");
             throw new AppError("password incorrect",400);
         }
-        //generate access token and send via cookies  
+        //generate access & ref token and send via cookies  
         const payload={id:user.id,role:user.role};
         const token=generateAccessToken(payload);
         const refToken=generateRefreshToken(payload);
@@ -121,11 +122,52 @@ const logout=asyncHandler(async(req,res)=>{
         });
         return res.status(200).json({
             success:true,
-            message:"logged out",
+            message:"logged out user "+user.userName,
             user: null
 })
 
 })
 
-export {login , register , logout};
+
+const refreshMyToken=asyncHandler(async(req,res)=>{
+    //extract the ref token from cookie 
+    //validate the cookie ref token by decoding it , if its the real one 
+    //then hash and compare from the one stored in db
+    //re generate the access token and store in cookie 
+
+    const tokenInCookie=req.cookies.refreshToken;
+    if (!tokenInCookie) {
+      throw new AppError("No refresh token", 401);
+    }
+    const decodedToken=jwt.verify(tokenInCookie,process.env.REFRESH_TOKEN_SECRET);
+    const user=await prisma.user.findFirst({
+        where : {id:decodedToken.id}
+    })
+
+    if (!user) {
+      throw new AppError("Invalid refresh token", 401);
+    }
+    const tokenInDb=user.refreshToken;
+    const hashedRT=crypto.createHash("sha256").update(tokenInCookie).digest("hex");
+
+    if(hashedRT !== tokenInDb){
+        throw new AppError("refresh token not valid ", 401);
+    }
+
+    const payload={id:user.id,role:user.role};
+    const newAccessToken=generateAccessToken(payload);
+    console.log("new access token generated ");
+    res.cookie('accessToken',newAccessToken,{
+        httpOnly:true,
+            secure: process.env.NODE_ENV === 'production'
+    })
+
+    return res.status(200).json({
+        success: true,
+        message: "Access token refreshed"
+    });
+
+})
+
+export {login , register , logout,refreshMyToken};
 

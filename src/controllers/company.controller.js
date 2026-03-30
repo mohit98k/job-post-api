@@ -1,0 +1,47 @@
+import asyncHandler from "../utils/asyncHandler.js";
+import prisma from "../prisma.js";
+import AppError from "../utils/AppError.js";
+
+//only users with role:comany can create company : isCompany middleware 
+//this is a protected route so req.user is defined 
+const createCompany=asyncHandler(async(req,res)=>{
+    const {companyName,websiteLink,about,location}=req.body;
+
+    const user=req.user;
+    if(!companyName || !about || !location){
+        throw new AppError("incomplete information " , 400 );
+    }
+    if(!user){
+        throw new AppError("user not found",404);
+    }
+
+
+    const id=user.id;
+
+    const company =await prisma.company.create({
+        data:{
+            companyName,
+            websiteLink:websiteLink?.trim()||null,
+            about,
+            location,
+            // userId:user.id <-no need for this prisma will do it automatically 
+            user:{
+                connect:{id:user.id}
+            }
+        }
+    })
+    
+    if(!company){
+        throw new AppError("failed to create company ",400);
+    }
+
+    return res.status(201).json({
+        success:true,
+        message:"company created",
+        company
+
+    })
+
+})
+
+export default createCompany;

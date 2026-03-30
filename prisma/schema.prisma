@@ -34,7 +34,7 @@ model Company{
   userId Int @unique //actual foreign key col 
   user User  @relation(fields: [userId] , references: [id])//now can access user.fullname via this 
   companyName String 
-  websiteLink String 
+  websiteLink String? 
   about String 
   location String 
   jobs Job[]//linking the job table 

@@ -5,7 +5,7 @@ const generateAccessToken=(payload)=>{
    return token ;
 }
 const generateRefreshToken= (payload)=>{
-   const token =jwt.sign(payload,process.env.REFRESH_TOKEN_SECRE,{ expiresIn: '7d' })
+   const token =jwt.sign(payload,process.env.REFRESH_TOKEN_SECRET,{ expiresIn: '7d' })
    return token ;
 }
 
