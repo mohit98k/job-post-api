@@ -65,9 +65,9 @@ const getCompany = asyncHandler(async(req,res)=>{
 
 export { createCompany,getCompany};
 
-// the devil wont let go 
+// the deeevil iiiiin yoou'r eyees 
+// wont deny
 // the lies you've sold
-// in you'r eyeees 
-// im hoooldinnng on two sides 
-// while you let go ! 
-// this is casual....
+// im hooldinnng on two sides 
+// while you let goo ! 
+// this is casuaalllll....

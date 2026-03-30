@@ -7,29 +7,38 @@ import AppError from '../utils/AppError.js'
 import crypto from 'crypto';
 import jwt  from "jsonwebtoken";
 
+
+const ALLOWED_ROLES = ['USER', 'COMPANY'];
+
 const register=asyncHandler(async(req,res)=>{
-    const {fullname,userName,email,password,role}=req.body;
+        const {fullname,userName,email,password,role}=req.body;
         if(!fullname || !userName || !email || !password || !role ){
-            console.log("empty field");
+            console.log("empty or illegal field");
            throw new AppError("empty",400);
         }
         const hashedPass=await bcrypt.hash(password,10);
-        const e=await prisma.user.findUnique({where : {email : email}});
-        const u=await prisma.user.findUnique({where : {userName : userName}});
-        if(e||u){
+        const safeRole = ALLOWED_ROLES.includes(role) ? role : 'USER';
+
+        const existing = await prisma.user.findFirst({
+            where : {
+                OR :[{email:email},{userName:userName}]
+            }
+        })
+
+        if(existing){
             console.log(e + " is in use ");
             throw new AppError("field is in use by other user",409);
             //409 is for conflict 
         }
         
-        //register as a normal user 
+        
         const user=await prisma.user.create({
             data:{
                 fullname:fullname,
                 userName:userName,
                 email:email,
                 password:hashedPass,
-                role:role
+                role:safeRole
             }
         })
 
