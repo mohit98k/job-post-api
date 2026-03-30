@@ -1,4 +1,3 @@
-import jwt  from "jsonwebtoken";
 import asyncHandler from "../utils/asyncHandler.js";
 import AppError from "../utils/AppError.js";
 

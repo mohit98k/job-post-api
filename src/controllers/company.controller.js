@@ -44,4 +44,30 @@ const createCompany=asyncHandler(async(req,res)=>{
 
 })
 
-export default createCompany;
+//user with any role can fetch the company details 
+const getCompany = asyncHandler(async(req,res)=>{
+  const id=Number(req.params.id);
+  if(isNaN(id)){
+    throw new AppError("company id invalid ",400);
+  }
+  const company =await prisma.company.findUnique({
+    where : {id:id}
+  })
+  if(!company){
+    throw new AppError("company not found",404);
+  }
+  return res.status(200).json({
+    success:true,
+    message:"found company",
+    company
+  })
+})
+
+export { createCompany,getCompany};
+
+// the devil wont let go 
+// the lies you've sold
+// in you'r eyeees 
+// im hoooldinnng on two sides 
+// while you let go ! 
+// this is casual....

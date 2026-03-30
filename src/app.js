@@ -16,6 +16,7 @@ app.use("/api/v1/auth",authRoutes);
 app.use("/api/v1/user",userRoutes);
 //companyRoutes
 app.use("/api/v1/company",companyRoutes);
+app.use("api/v1/company",companyRoutes);
 
 //global error handler 
 app.use(errorHandler);
