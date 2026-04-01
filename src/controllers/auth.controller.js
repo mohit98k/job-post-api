@@ -26,7 +26,7 @@ const register=asyncHandler(async(req,res)=>{
         })
 
         if(existing){
-            console.log(e + " is in use ");
+            console.log("user exist alreday");
             throw new AppError("field is in use by other user",409);
             //409 is for conflict 
         }
