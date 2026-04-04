@@ -13,6 +13,7 @@ const verifyJWT=async (req,res,next)=>{
 
         const user=await prisma.user.findUnique({
             where : {id:decodedToken.id},
+            include: {company:true}        //prisma never autofetches relations , so include them explicitely 
         });
 
         if(!user){

@@ -55,10 +55,10 @@ model Job{
   description String 
   location Location @default(ONSITE)
   salary Int?
-  skills String[]
   experience Int
   applications Application[]//linking job with application
   tags Tag[]
+  skills Skill[]
   createdAt DateTime @default(now())
 }
 
@@ -76,10 +76,16 @@ model Application{
   job Job @relation(fields: [jobId],references: [id])
   status Status @default(APPLIED)
   createdAt DateTime @default(now())
+  @@unique([userId, jobId])
 }
 
 model Tag{
   id Int @id @default(autoincrement())
   jobs Job[]
   tagValue String @unique
+}
+model Skill{
+  id Int @id @default(autoincrement())
+  jobs Job[]
+  skillName String @unique
 }

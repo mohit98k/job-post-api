@@ -4,6 +4,7 @@ import AppError from "../utils/AppError.js";
 
  
 const rateLimitLogin=asyncHandler(async(req,res,next)=>{
+    const ip=req.ip;
     const key=`singup:${ip}`;
     const limit=5;
     const now=Date.now();
@@ -14,7 +15,7 @@ const rateLimitLogin=asyncHandler(async(req,res,next)=>{
                .zadd(key,now,`${now}:${Math.random()}`)
                .expire(key,60)
                .exec();
-    
+    const cnt = await redis.zcard(key);
     if(cnt>limit){
         throw new AppError("too many request " ,429);
     }
