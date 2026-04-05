@@ -43,7 +43,7 @@ const createJob = asyncHandler(async(req,res)=>{
     throw new AppError("Invalid tags provided", 400);
     }
 
-    
+
     //fetch company id
     const companyId=req.user.company.id;
     //create job 
@@ -81,4 +81,35 @@ const createJob = asyncHandler(async(req,res)=>{
     });
 })
 
-export {createJob};
+
+
+
+//get job with id 
+const getJob=asyncHandler(async(req,res)=>{
+    const id=Number(req.params.id);
+    if(isNaN(id)){
+      throw new AppError("job id invalid ",400);
+    }
+    const job=await prisma.job.findUnique({
+        where : {id:id},
+        include:{
+            tags : {
+                select:{tagValue:true}
+            },
+            skills:{
+                select:{skillName:true}
+            }
+        }
+    })
+    if(!job){
+        throw new AppError("couldnt find job with given id " , 404);
+    }
+    return res.status(200).json({
+        success:true,
+        message:"found the job ",
+        job
+    })
+
+})
+
+export {createJob,getJob};
