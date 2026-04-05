@@ -51,7 +51,21 @@ const getCompany = asyncHandler(async(req,res)=>{
     throw new AppError("company id invalid ",400);
   }
   const company =await prisma.company.findUnique({
-    where : {id:id}
+    where : {id:id},
+    include:{
+        jobs:{
+           select :{
+            id:true,
+            jobRole:true,
+            skills:{
+                select:{skillName:true}
+            },
+            tags:{
+                select:{tagValue:true}
+            }
+           }
+        }
+    }
   })
   if(!company){
     throw new AppError("company not found",404);

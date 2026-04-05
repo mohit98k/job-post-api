@@ -16,7 +16,34 @@ const createJob = asyncHandler(async(req,res)=>{
     if(isNaN(experience) || isNaN(salary)){
         throw new AppError("input filed not a number ", 400);
     }
+    //skills and tags input validation 
+    const normalizedSkills = skills.map(s => s.toLowerCase());
 
+    const existingSkills = await prisma.skill.findMany({
+    where: {
+        skillName: { in: normalizedSkills }
+    }
+    });
+
+    if (existingSkills.length !== normalizedSkills.length) {
+    throw new AppError("Invalid skills provided", 400);
+    }
+
+
+
+    const normalizedTags = tags.map(t => t.toLowerCase());
+
+    const existingTags = await prisma.tag.findMany({
+    where: {
+        tagValue: { in: normalizedTags }
+    }
+    });
+
+    if (existingTags.length !== normalizedTags.length) {
+    throw new AppError("Invalid tags provided", 400);
+    }
+
+    
     //fetch company id
     const companyId=req.user.company.id;
     //create job 
@@ -27,13 +54,18 @@ const createJob = asyncHandler(async(req,res)=>{
             location,
             salary,
             experience,
-            tags,
-            skills,
             company:{
                 connect:{id:companyId}
             },
             tags:{
-                
+                connect : tags.map(tag=>({
+                    tagValue : tag.toLowerCase()
+                }))
+            },
+            skills:{
+                connect: skills.map(skill=>({
+                    skillName:skill.toLowerCase()
+                }))
             }
         }
     })
