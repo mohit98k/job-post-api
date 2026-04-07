@@ -98,6 +98,9 @@ const getJob=asyncHandler(async(req,res)=>{
             },
             skills:{
                 select:{skillName:true}
+            },
+            applications:{
+                select:{userId:true}
             }
         }
     })

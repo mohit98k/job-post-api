@@ -6,12 +6,12 @@ import cookieParser from 'cookie-parser'
 import errorHandler from './middlewares/errorHandler.middleware.js';
 import jobRoutes from "./routes/job.routes.js"
 import adminRoutes from "./routes/admin.routes.js"
-
+import applicationRoiutes from "./routes/application.routes.js"
 const app=express();
 
 app.use(express.json()); // to parse JSON bodies
 app.use(express.urlencoded({ extended: true })); // to parse form-data if needed
-app.use(cookieParser())
+app.use(cookieParser());
 app.set("trust proxy", true);//for real ip detection when deployed 
 
 //authroutes
@@ -22,8 +22,16 @@ app.use("/api/v1/user",userRoutes);
 app.use("/api/v1/company",companyRoutes);
 //jobRoutes
 app.use("/api/v1/job",jobRoutes);
+//applicationRoutes
+app.use("/api/v1/application",applicationRoiutes);
+
+
 //AdminRoutes
 app.use("/api/v1/admin",adminRoutes);
+
+
+
+
 //global error handler 
 app.use(errorHandler);
 
