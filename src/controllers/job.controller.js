@@ -90,6 +90,7 @@ const getJob=asyncHandler(async(req,res)=>{
     if(isNaN(id)){
       throw new AppError("job id invalid ",400);
     }
+    
     const job=await prisma.job.findUnique({
         where : {id:id},
         include:{
@@ -99,9 +100,9 @@ const getJob=asyncHandler(async(req,res)=>{
             skills:{
                 select:{skillName:true}
             },
-            applications:{
-                select:{userId:true}
-            }
+            // applications:{
+            //     select:{userId:true}
+            // }
         }
     })
     if(!job){
@@ -113,6 +114,71 @@ const getJob=asyncHandler(async(req,res)=>{
         job
     })
 
-})
+});
 
-export {createJob,getJob};
+
+//get the latest jobs 
+const getJobs=asyncHandler(async(req,res)=>{
+ const {skills,tags,location,jobRole,cursor}=req.query;
+ if (cursor && (isNaN(cursor) || Number(cursor) < 0)) {
+   throw new AppError("invalid cursor value", 400);
+ }
+ const limit = 5 ;
+ 
+ const where = {};
+ if(location)where.location = location ;
+ if(jobRole)where.jobRole=jobRole.toLowerCase();
+ if(skills){
+    const skillArray=skills.split(",")
+    where.skills= {
+        some:{
+            skillName:{in : skillArray}
+        }
+    }
+ }
+ if(tags){
+    const tagArray=tags.split(",");
+    where.tags={
+        some:{
+            tagValue:{in:tagArray}
+        }
+    }
+ }
+
+ const jobs=await prisma.job.findMany({
+    ...(cursor &&{
+        cursor:{id:Number(cursor)}        
+    }),
+    take:limit+1,
+    where,
+    orderBy:[{createdAt:"desc"},{id:"desc"}],
+    include:{
+        skills:{
+            select : {skillName:true}
+        },
+        tags:{
+            select: {tagValue:true}
+        }
+    }
+ })
+
+ if(jobs.length===0){
+    throw new AppError("no job found " ,404);
+ }
+
+ //handle the pagination 
+ let nextCursor=null;
+ if(jobs.length>limit){
+    const lastJob=jobs.pop();
+    nextCursor=lastJob.id;
+ }
+ return res.status(200).json({
+    success:true,
+    messgae:"Job fetch successfull",
+    data:jobs,
+    nextCursor
+ })
+});
+
+
+export {createJob,getJob,getJobs};

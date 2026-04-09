@@ -38,4 +38,22 @@ const applyToJob=asyncHandler(async(req,res)=>{
     application
    })
 });
-export {applyToJob};
+
+
+const getMyApplications=asyncHandler(async(req,res)=>{
+  const user=req.user ;
+  const applicatins=await prisma.application.findMany({
+    where : {userId:user.id}
+  }) 
+  if(applicatins.length===0){
+    throw new AppError("no applicatinos found " , 404);
+  }
+  console.log(applicatins);
+  return res.status(200).json({
+    success:true,
+    message:"fetched applicatinos",
+    applicatins
+  })
+});
+
+export {applyToJob,getMyApplications};

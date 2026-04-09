@@ -60,6 +60,12 @@ model Job{
   tags Tag[]
   skills Skill[]
   createdAt DateTime @default(now())
+
+  @@index([jobRole])
+ // @@index([location]) this can be obtained from the composite indexing 
+  @@index([companyId])
+  @@index([createdAt])
+  @@index([location,jobRole,createdAt])
 }
 
 enum Status{
@@ -70,19 +76,28 @@ enum Status{
 //when was applied ? who applied ? to what job was applied for ?
 model Application{
   id Int @id @default(autoincrement())
+
   userId Int //fk col
   user User @relation(fields: [userId],references: [id])
+
   jobId Int //fk col
   job Job @relation(fields: [jobId],references: [id])
+
   status Status @default(APPLIED)
   createdAt DateTime @default(now())
-  @@unique([userId, jobId])
+
+
+  @@unique([userId, jobId])//thsi works as a composite index internally 
+  //@@index([userId]) this one is included in the above by left rule 
+  @@index([jobId,createdAt])
+  //@@index([jobId])  this one is included in the above by left rule 
 }
 
 model Tag{
   id Int @id @default(autoincrement())
   jobs Job[]
   tagValue String @unique
+  
 }
 model Skill{
   id Int @id @default(autoincrement())
