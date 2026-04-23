@@ -5,7 +5,7 @@ import AppError from "../utils/AppError.js";
  
 const rateLimitLogin=asyncHandler(async(req,res,next)=>{
     const ip=req.ip;
-    const key=`singup:${ip}`;
+    const key=`login:${ip}`;
     const limit=5;
     const now=Date.now();
     const windowMS=30*1000;
@@ -24,7 +24,7 @@ const rateLimitLogin=asyncHandler(async(req,res,next)=>{
 
 const rateLimitSingUp=asyncHandler(async(req,res,next)=>{
     const ip=req.ip;
-    const key=`login:${ip}`;
+    const key=`singup:${ip}`;
     const limit=5;
     const now=Date.now();
     const windowMS=30*1000;

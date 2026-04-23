@@ -102,7 +102,7 @@ const getJob=asyncHandler(async(req,res)=>{
             },
             // applications:{
             //     select:{userId:true}
-            // }
+            // } definately dont wannan let ppl know who else applied 
         }
     })
     if(!job){

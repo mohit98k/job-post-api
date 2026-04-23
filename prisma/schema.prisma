@@ -25,6 +25,7 @@ model User{
   email String @unique
   password String 
   role Role @default(USER)//this is my custom enum data type 
+  skills Skill[]
   company Company?
   refreshToken String?
   applications Application[]//linking application to user 
@@ -102,5 +103,6 @@ model Tag{
 model Skill{
   id Int @id @default(autoincrement())
   jobs Job[]
+  users User[]
   skillName String @unique
 }

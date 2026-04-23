@@ -26,7 +26,7 @@ const createCompany=asyncHandler(async(req,res)=>{
             location,
             // userId:user.id <-no need for this prisma will do it automatically 
             user:{
-                connect:{id:user.id}
+                connect:{id:user.id} //Find a User where id = user.id and link it to this Company
             }
         }
     })

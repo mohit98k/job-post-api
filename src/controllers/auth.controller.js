@@ -166,7 +166,7 @@ const refreshMyToken=asyncHandler(async(req,res)=>{
     const payload={id:user.id,role:user.role};
     const newAccessToken=generateAccessToken(payload);
     console.log("new access token generated ");
-    res.cookie('accessToken',newAccessToken,{
+    res.cookie('accessToken',newAccessToken,{ 
         httpOnly:true,
             secure: process.env.NODE_ENV === 'production'
     })
