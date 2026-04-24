@@ -25,15 +25,17 @@ const getUser=asyncHandler(async(req,res)=>{
        return getMe(req,res);
     }
     const user=await prisma.user.findUnique({
-        where : {id:id}
+        where : {id:id},
+        include:{skills:true}
     })
     if(!user){
         throw new AppError("user not found " , 404);
     }
+    const {password:userPassword , ...userWithoutPass}=user;
     return res.status(200).json({
         success: true,
         message: "user fetched successfully",
-        user
+        userWithoutPass
     });
     
 })
@@ -73,7 +75,7 @@ const addSkill=asyncHandler(async(req,res)=>{
 
     const alreadyAdded = user.skills.some(s => s.id === existingSkill.id)
     if (alreadyAdded) {
-       throw new AppError("Skill already added to your profile", 409)
+       throw new AppError("Skill already in use to your profile", 409)
     }
 
    
