@@ -117,6 +117,7 @@ const getJob=asyncHandler(async(req,res)=>{
 });
 
 
+
 //get the latest jobs 
 const getJobs=asyncHandler(async(req,res)=>{
  const {skills,tags,location,jobRole,cursor}=req.query;
@@ -180,5 +181,57 @@ const getJobs=asyncHandler(async(req,res)=>{
  })
 });
 
+//get the latest jobs according to the skills that the user has 
+//recommendation bascially 
+const getRecommendedJob=asyncHandler(async(req,res)=>{
+    const user =req.user;
+    if(!user){
+        throw new AppError("user not found",404);
+    }
+    //get the user with skills included
+    const userWithSkills=await prisma.user.findUnique({
+        where : {id:user.id},
+        include:{skills:true}
+    })
+    if(!userWithSkills){
+        throw new AppError("user not found",404);
+    }
+    const skills=userWithSkills.skills;
+    const where = {};
+    if(skills.length>0){
+        const skillArray=skills.map(s => s.skillName);
+        where.skills= {
+            some:{
+                skillName:{in : skillArray}
+            }
+        }
+    }
+    //now just need to get the latest jobs with the user skils
+    const jobs = await prisma.job.findMany({
+        where , 
+        skip:0,
+        take:10,
+        orderBy:[{createdAt:"desc"},{id:"desc"}],
+        include:{
+            skills:{
+                select : {skillName:true}
+            },
+            tags:{
+                select: {tagValue:true}
+            }
+        }
+    });
 
-export {createJob,getJob,getJobs};
+    if(jobs.length===0){
+        throw new AppError("no job found " ,404);
+    }
+
+    return res.status(200).json({
+        success:true,
+        messgae:"Job fetch successfull",
+        data:jobs
+    })
+
+});
+
+export {createJob,getJob,getJobs,getRecommendedJob};

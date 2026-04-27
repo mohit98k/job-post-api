@@ -21,9 +21,9 @@ const getUser=asyncHandler(async(req,res)=>{
     if (isNaN(id)) {
        throw new AppError("invalid user id", 400);
     }
-    if(id===req.user.id){
-       return getMe(req,res);
-    }
+    // if(id===req.user.id){
+    //    return getMe(req,res);
+    // }
     const user=await prisma.user.findUnique({
         where : {id:id},
         include:{skills:true}
