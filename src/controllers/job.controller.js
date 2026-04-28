@@ -121,11 +121,8 @@ const getJob=asyncHandler(async(req,res)=>{
 //get the latest jobs 
 const getJobs=asyncHandler(async(req,res)=>{
  const {skills,tags,location,jobRole,cursor}=req.query;
- if (cursor && (isNaN(cursor) || Number(cursor) < 0)) {
-   throw new AppError("invalid cursor value", 400);
- }
+ if (cursor && (isNaN(cursor) || Number(cursor) < 0)) throw new AppError("invalid cursor value", 400);
  const limit = 5 ;
- 
  const where = {};
  if(location)where.location = location ;
  if(jobRole)where.jobRole=jobRole.toLowerCase();
@@ -181,21 +178,19 @@ const getJobs=asyncHandler(async(req,res)=>{
  })
 });
 
-//get the latest jobs according to the skills that the user has 
-//recommendation bascially 
+
+
 const getRecommendedJob=asyncHandler(async(req,res)=>{
     const user =req.user;
-    if(!user){
-        throw new AppError("user not found",404);
-    }
+    if(!user) throw new AppError("user not found",404);
+
     //get the user with skills included
     const userWithSkills=await prisma.user.findUnique({
         where : {id:user.id},
         include:{skills:true}
     })
-    if(!userWithSkills){
-        throw new AppError("user not found",404);
-    }
+    if(!userWithSkills) throw new AppError("user not found",404);
+
     const skills=userWithSkills.skills;
     const where = {};
     if(skills.length>0){
@@ -234,4 +229,62 @@ const getRecommendedJob=asyncHandler(async(req,res)=>{
 
 });
 
-export {createJob,getJob,getJobs,getRecommendedJob};
+
+
+const getApplications=asyncHandler(async(req,res)=>{
+    const user =req.user;
+    if(!user) throw new AppError("user not found",404);
+
+    const {cursor}=req.query;
+    const cursorId=Number(cursor);
+    const limit = 10 ; 
+    if (cursor && (isNaN(cursorId) || cursorId < 0)) {
+        throw new AppError("invalid cursor value", 400);
+    }
+
+    const jobId=Number(req.params.id);
+    if(isNaN(jobId)) throw new AppError("job id not valid ", 400);
+
+    const companyId=req.company.id;
+    if(!companyId) throw new AppError("couldnt find company " , 404);
+
+    const job=await prisma.job.findUnique({
+        where : {id : jobId},
+        select: { companyId: true }
+    })
+    if(!job){
+        throw new AppError("job doesnt exist",404);
+    }
+    if(job.companyId != companyId){
+        throw new AppError("access denied",403);
+    }
+    //console.log(job)
+
+    const applications = await prisma.application.findMany({
+        
+        cursor:cursorId != undefined?{id:cursorId}:undefined,
+        skip : cursorId != undefined?1:0,
+        take:limit+1,
+        where : {jobId:jobId},
+        orderBy:{id:"desc"}
+
+    })
+
+
+    let nextCursor=null;
+    if(applications.length>limit){
+        applications.pop();
+        const lastItem=applications[applications.length - 1];
+        nextCursor=lastItem?.id;
+    }
+   
+    
+  return res.status(200).json({
+     success:true,
+     messgae:"Job fetch successfull",
+     data: applications,
+     nextCursor
+  })
+})
+
+export {createJob,getJob,getJobs,getRecommendedJob,getApplications};

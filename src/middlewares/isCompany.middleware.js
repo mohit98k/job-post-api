@@ -6,6 +6,7 @@ const isCompany=asyncHandler(async(req,res,next)=>{
     if(user.role !== "COMPANY"){
        throw new AppError("access denied",403);
     }
+    req.company=user.company;
     next();
 })
 
