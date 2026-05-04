@@ -235,19 +235,25 @@ const getApplications=asyncHandler(async(req,res)=>{
     const user =req.user;
     if(!user) throw new AppError("user not found",404);
 
-    const {cursor}=req.query;
-    const cursorId=Number(cursor);
-    const limit = 10 ; 
-    if (cursor && (isNaN(cursorId) || cursorId < 0)) {
-        throw new AppError("invalid cursor value", 400);
+   const { cursor } = req.query;
+   let cursorId;
+
+    if (cursor !== undefined && cursor !== "") {
+        const parsed = Number(cursor);
+        if (isNaN(parsed) || parsed < 0) {
+            throw new AppError("invalid cursor value", 400);
+        }
+        cursorId = parsed;
     }
+    
+    const limit = 10 ; 
+    
 
     const jobId=Number(req.params.id);
     if(isNaN(jobId)) throw new AppError("job id not valid ", 400);
 
     const companyId=req.company.id;
     if(!companyId) throw new AppError("couldnt find company " , 404);
-
     const job=await prisma.job.findUnique({
         where : {id : jobId},
         select: { companyId: true }
@@ -258,18 +264,16 @@ const getApplications=asyncHandler(async(req,res)=>{
     if(job.companyId != companyId){
         throw new AppError("access denied",403);
     }
-    //console.log(job)
-
     const applications = await prisma.application.findMany({
         
         cursor:cursorId != undefined?{id:cursorId}:undefined,
         skip : cursorId != undefined?1:0,
         take:limit+1,
         where : {jobId:jobId},
-        orderBy:{id:"desc"}
+        orderBy:{id:"asc"}
 
     })
-
+    console.log(applications)
 
     let nextCursor=null;
     if(applications.length>limit){

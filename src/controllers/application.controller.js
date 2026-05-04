@@ -56,4 +56,47 @@ const getMyApplications=asyncHandler(async(req,res)=>{
   })
 });
 
-export {applyToJob,getMyApplications};
+
+
+
+//first verify jwt so we know the user is logged in and req.user is defined
+//role check for comapny so isCompany , and req.comapny is defined 
+//inputs are : newStatus value , applicationn id 
+//ive company id , application id , through application i can get job id ;
+//so from that job id i can fetch the job and get the company id 
+//validate if the logged in company is the right full publisher of the job whose application is being updated 
+//then only update the enum 
+const updateApplicationStatus=asyncHandler(async(req,res)=>{
+  const company =req.company ;
+  const {newStatus,applicationId}=req.body;
+  const arr=["ACCEPTED","REJECTED"];
+  if(!arr.includes(newStatus))throw new AppError("unacceptable status" , 400);
+  
+  const application = await prisma.application.findUnique({
+    where : {id:applicationId},
+    include:{job:true}
+  });
+  if(!application)throw new AppError("application not found",404);
+
+  const jobId=application.jobId;
+  const companyId=application.job.companyId;
+
+  if(companyId != company.id)throw new AppError("access denied" , 403);
+  
+  const updatedApplication = await prisma.application.update({
+    where:{id:applicationId},
+    data:{
+      status:newStatus
+    }
+  })
+
+  if(!updatedApplication)throw new AppError("failed to update" , 400);
+
+  return res.status(200).json({
+    success:true,
+    message:"status updated successfully",
+    updatedApplication
+  });
+})
+
+export {applyToJob,getMyApplications,updateApplicationStatus};
