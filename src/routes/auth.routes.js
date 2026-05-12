@@ -6,7 +6,6 @@ import { rateLimitLogin,rateLimitSingUp } from '../middlewares/rateLimit.middlew
 
 router.post("/register",rateLimitSingUp,register);
 router.post("/login",rateLimitLogin,login);
-
 router.post("/logout",verifyJWT,logout);
 router.post("/refresh-my-token",refreshMyToken);
 

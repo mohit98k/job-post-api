@@ -24,6 +24,7 @@ model User{
   userName String @unique
   email String @unique
   password String 
+  isBanned Boolean @default(false)
   role Role @default(USER)//this is my custom enum data type 
   skills Skill[]
   company Company?

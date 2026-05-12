@@ -46,4 +46,59 @@ const createSkill=asyncHandler(async(req,res,next)=>{
 })
 
 
-export {createTag,createSkill};
+const banUser = asyncHandler(async(req,res)=>{
+    const {userId}=req.body ;
+    if(!userId)throw new AppError("provide userID", 400);
+
+    //admin cant ban him self
+    if(req.user.id == userId)throw new AppError("dont try to ban your self" , 400);
+
+    const user = await prisma.user.findUnique({
+        where:{id:userId}
+    })
+    if(!user)throw new AppError("user dont exist" , 404);
+    const del = await prisma.user.update({
+        where: { id: userId },
+        data: { isBanned: true }
+    })
+
+    if(!del)throw new AppError("couldnt ban user"  , 400);
+    return res.status(200).json({
+        success:true,
+        message:"user banned",
+        del
+    })
+})
+
+
+
+const unbanUser = asyncHandler(async(req,res)=>{
+    const {userId}=req.body ;
+    if(!userId)throw new AppError("provide userID", 400);
+
+    //admin cant ban him self
+    if(req.user.id == userId)throw new AppError("dont try to ban your self" , 400);
+
+    const user = await prisma.user.findUnique({
+        where:{id:userId}
+    })
+    if(!user)throw new AppError("user dont exist" , 404);
+    const del = await prisma.user.update({
+        where: { id: userId },
+        data: { isBanned: false }
+    })
+
+    if(!del)throw new AppError("couldnt ban user"  , 400);
+    return res.status(200).json({
+        success:true,
+        message:"user unbanned",
+        del
+    })
+})
+
+
+const changePassword=asyncHandler(async(req,res)=>{
+    
+})
+
+export {createTag,createSkill,banUser,unbanUser,changePassword};
