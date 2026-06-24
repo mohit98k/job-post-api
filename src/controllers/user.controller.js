@@ -92,7 +92,54 @@ const addSkill=asyncHandler(async(req,res)=>{
         skill: existingSkill.skillName
     });
 })
-export  {getMe,getUser,addSkill};
+
+
+import {PutObjectCommand } from "@aws-sdk/client-s3";
+import s3 from "../config/s3.js"
+
+//upload the resme to s3 then update the s3 objname in user schema
+const uploadResume=asyncHandler(async(req,res)=>{
+  if(!req.file){
+    throw new AppError("req.file is empty , multer messed up prolly",400);
+  }
+  
+  const key = `resume/${req.user.id}.pdf`
+
+  const command = new PutObjectCommand({
+    Bucket: process.env.S3_BUCKET_NAME,
+    Key: key,
+    Body: req.file.buffer,
+    ContentType: req.file.mimetype
+  });
+
+  const s3result=await s3.send(command);
+  
+  console.log("s3 upload done ")
+  console.log(s3result);
+
+
+  const result = await prisma.user.update({
+    where:{id:req.user.id},
+    data:{resumeUrl:key}
+  })
+  
+
+  if(!result){
+    throw new AppError("couldnt update the db",400);
+  }
+  
+  console.log(result)
+  return res.json({
+    success:true,
+    message:"updated resume"
+  })
+
+});
+
+
+
+
+export  {getMe,getUser,addSkill,uploadResume};
 
 // throw AppError → declare problem
 // async handler -> catch the errror 

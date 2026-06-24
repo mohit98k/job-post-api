@@ -99,4 +99,86 @@ const updateApplicationStatus=asyncHandler(async(req,res)=>{
   });
 })
 
-export {applyToJob,getMyApplications,updateApplicationStatus};
+
+import {GetObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import s3 from "../config/s3.js"
+
+//provided application id 
+//verify owner ship of current loggeedin user  
+//return a temp s3 url of the resume of the candidate  
+
+const applicantsResume = asyncHandler(async(req,res)=>{
+  const applicationId = Number(req.params.id);
+
+  if(isNaN(applicationId)){
+    throw new AppError("id invalid",400);
+   }
+  
+  //  const data = await prisma.application.findUnique({
+  //   where:{id:applicationId},
+  //   include:{
+  //     job:{
+  //       include:{company:true}
+  //     },
+  //     user:true
+  //   }
+  //  })
+
+
+
+  const data = await prisma.application.findUnique({
+    where : {id:applicationId},
+    include:{
+      job:{
+        select:{companyId:true}
+      },
+      user:{
+        select:{resumeUrl:true}
+      }
+    }
+  })
+
+   if(!data){
+    throw new AppError(" no such application exists ", 404);
+   }
+
+  //console.log(data.job.companyId);
+  //console.log(req.user)
+  //console.log(req.company)
+
+  if(req.company.id != data.job.companyId ){
+    throw new AppError("access denied " , 403);
+  }
+  
+  const resumeUrl = data.user.resumeUrl;
+
+  if(!resumeUrl){
+    throw new AppError("this user has no resume " , 404);
+  }
+
+  const command = new GetObjectCommand({
+    Bucket: process.env.S3_BUCKET_NAME,
+    Key: resumeUrl
+  });
+
+  const signedUrl = await getSignedUrl(
+    s3,
+    command,
+    {expiresIn: 300}
+  );
+  
+
+  if(!signedUrl){
+    throw new AppError("couldnt generate the pre-signed url" , 400);
+  }
+
+   return res.status(200).json({
+    success:true,
+    message:"got u the s3url",
+    signedUrl
+   })
+
+})
+
+export {applyToJob,getMyApplications,updateApplicationStatus,applicantsResume};

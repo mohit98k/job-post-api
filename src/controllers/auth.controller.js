@@ -11,6 +11,7 @@ import jwt  from "jsonwebtoken";
 const ALLOWED_ROLES = ['USER', 'COMPANY'];
 
 const register=asyncHandler(async(req,res)=>{
+    // console.log("1. Registration route hit!");
         const {fullname,userName,email,password,role}=req.body;
         if(!fullname || !userName || !email || !password || !role ){
             console.log("empty or illegal field");
@@ -70,6 +71,7 @@ const login= asyncHandler(async(req,res)=>{
             console.log("user doesnt exist");
             throw new AppError("user doesnt exist",404);
         }
+        
         //verify the password
         const isMatch=await bcrypt.compare(password,user.password);
         if(!isMatch){
