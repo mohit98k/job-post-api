@@ -181,4 +181,7 @@ const applicantsResume = asyncHandler(async(req,res)=>{
 
 })
 
+
+
+
 export {applyToJob,getMyApplications,updateApplicationStatus,applicantsResume};
