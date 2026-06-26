@@ -1,6 +1,7 @@
 import asyncHandler from "../utils/asyncHandler.js"
 import AppError from "../utils/AppError.js";
 import prisma from "../prisma.js";
+import redis from "../config/redis.js"
 
 
 const createJob = asyncHandler(async(req,res)=>{
@@ -73,6 +74,12 @@ const createJob = asyncHandler(async(req,res)=>{
     if(!job){
         throw new AppError("job could not be created", 400);
     }
+
+    //cache invalidation
+    console.log("redis cache started clearing ");;
+    await redis.del("latest_jobs");
+    console.log("redis cache cleared ");
+
 
     return res.status(200).json({
         success:true,
@@ -291,4 +298,63 @@ const getApplications=asyncHandler(async(req,res)=>{
   })
 })
 
-export {createJob,getJob,getJobs,getRecommendedJob,getApplications};
+
+
+
+
+//user reqests for the latest jobs
+//first hit redis if found return 
+// else querry db and store in redis and return 
+
+
+const getLatestJobs = asyncHandler(async(req,res)=>{
+
+    const cacheKey = "latest_jobs";
+
+    const cached = await redis.get(cacheKey);
+
+// const ttl = await redis.ttl(cacheKey);
+// console.log(ttl);
+
+
+    if(cached){
+        console.log("cache hit buddy , response came from redis not pg");
+        return res.status(200).json({
+            success:true,
+            message:"redis got hit , u got the res faster ",
+            data: JSON.parse(cached)
+        });
+    }
+
+    //cache miss
+    const jobs = await prisma.job.findMany({
+        orderBy:{
+            createdAt:"desc"
+        },
+        take:10
+    });
+
+    if(!jobs){
+        throw new AppError(" couldnt fetch jobs " , 400 );
+    }
+    console.log("cache missed")
+    await redis.set(
+        cacheKey,
+        JSON.stringify(jobs),
+        "EX",
+        60*1000
+    );
+
+//  const verify = await redis.get(cacheKey);
+
+// console.log("stored value:", verify);
+
+    return res.status(200).json({
+        success:true,
+        message:"heres you'r latest jobs",
+        jobs
+    });
+
+})
+
+export {createJob,getJob,getJobs,getRecommendedJob,getApplications,getLatestJobs};

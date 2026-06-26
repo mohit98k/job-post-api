@@ -14,7 +14,10 @@ const createCompany=asyncHandler(async(req,res)=>{
     if(!user){
         throw new AppError("user not found",404);
     }
-
+    if(user.company != null){
+        console.log(user.company);
+        throw new AppError(" this user already has one company ", 400);
+    }
 
     const id=user.id;
 
