@@ -2,7 +2,7 @@ import AppError from "../utils/AppError.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import prisma from "../prisma.js";
 
-//only user role can apply 
+
 const applyToJob=asyncHandler(async(req,res)=>{
    const jobId=Number(req.params.id);
    const userId=req.user.id;
@@ -11,8 +11,10 @@ const applyToJob=asyncHandler(async(req,res)=>{
    }
    //fetch the job 
    const job=await prisma.job.findUnique({
-    where:{id:jobId}
+    where:{id:jobId},
+    include:{company:true}
    })
+   //console.log(job)
    if(!job){
     throw new AppError("couldnt find job " , 404);
    }
@@ -32,6 +34,20 @@ const applyToJob=asyncHandler(async(req,res)=>{
     throw new AppError("failed to apply " , 400);
    }
 // console.log(application)
+
+
+//add email sending job to queue 
+
+await emailQueue.add(
+  "application-email",
+  {
+    email:req.user.email,
+    companyName:job.company.companyName,
+    jobTitle: job.jobRole
+  }
+)
+console.log("Job added to queue");
+
    return res.status(201).json({
     success:true,
     message:"applied successfully",
@@ -107,6 +123,7 @@ const updateApplicationStatus=asyncHandler(async(req,res)=>{
 import {GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import s3 from "../config/s3.js"
+import emailQueue from "../config/Queue.js";
 
 //provided application id 
 //verify owner ship of current loggeedin user  
