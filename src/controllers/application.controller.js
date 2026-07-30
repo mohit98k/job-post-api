@@ -1,7 +1,7 @@
 import AppError from "../utils/AppError.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import prisma from "../prisma.js";
-
+import emailQueue from "../config/queue.js";
 
 const applyToJob=asyncHandler(async(req,res)=>{
    const jobId=Number(req.params.id);
@@ -123,7 +123,7 @@ const updateApplicationStatus=asyncHandler(async(req,res)=>{
 import {GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import s3 from "../config/s3.js"
-import emailQueue from "../config/Queue.js";
+
 
 //provided application id 
 //verify owner ship of current loggeedin user  
