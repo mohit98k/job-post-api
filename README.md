@@ -76,7 +76,9 @@ src
 
 ## API Endpoints
 
-Authentication Endpoints:
+/api/v1
+
+Authentication Endpoints: /auth
 
     POST /register
     POST /login
@@ -84,7 +86,7 @@ Authentication Endpoints:
     POST /refresh-my-token
 
 
-User Endpoints:
+User Endpoints: /user
 
     GET /getUser/:id
     GET /getMe
@@ -93,14 +95,14 @@ User Endpoints:
 
 
 
-Company Endpoints :
+Company Endpoints : /company
 
     POST /create
     GET /getCompany/:id
 
 
 
-Job Endpoints
+Job Endpoints : /job
 
     POST /createJob
     GET /getJob/:id
@@ -111,7 +113,7 @@ Job Endpoints
 
 
 
-Application Endpoints:
+Application Endpoints: /application
 
     POST /apply/:id
     GET /mine
@@ -120,7 +122,7 @@ Application Endpoints:
 
 
 
-Admin Routes :
+Admin Routes : /admin
 
     POST /createTag
     POST /createSkill
